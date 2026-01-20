@@ -1,0 +1,2591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>事件计数器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        h2 {
+            color: #34495e;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .form-row input, .form-row button {
+            flex: 1;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.2); /* 更透明的背景，增强玻璃感 */
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3); /* 半透明边框，增强玻璃质感 */
+            border-radius: 50px; /* 全圆角 */
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(15px); /* 更强的磨砂玻璃效果 */
+            -webkit-backdrop-filter: blur(15px); /* Safari支持 */
+            box-shadow: 
+                0 4px 15px rgba(0, 0, 0, 0.1),
+                0 1px 2px rgba(255, 255, 255, 0.5) inset, /* 内阴影，增强玻璃质感 */
+                0 -1px 2px rgba(0, 0, 0, 0.1) inset; /* 内阴影，增强玻璃质感 */
+        }
+        
+        .btn:hover {
+            background-color: rgba(255, 255, 255, 0.3); /* 悬停时更不透明 */
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 20px rgba(0, 0, 0, 0.15),
+                0 2px 4px rgba(255, 255, 255, 0.6) inset,
+                0 -2px 4px rgba(0, 0, 0, 0.15) inset;
+        }
+        
+        /* 确保圆形按钮不受影响 */
+        .btn-circle-3d {
+            background: linear-gradient(145deg, #FF6B6B, #FF8E8E);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+        
+        .btn-primary {
+            background-color: rgba(52, 152, 219, 0.7); /* 保持原主题色，增加透明度 */
+        }
+        
+        .btn-primary:hover {
+            background-color: rgba(41, 128, 185, 0.8); /* 悬停时略微不透明 */
+        }
+        
+        .btn-success {
+            background-color: rgba(46, 204, 113, 0.7); /* 保持原主题色，增加透明度 */
+        }
+        
+        .btn-success:hover {
+            background-color: rgba(39, 174, 96, 0.8); /* 悬停时略微不透明 */
+        }
+        
+        .btn-danger {
+            background-color: rgba(231, 76, 60, 0.7); /* 保持原主题色，增加透明度 */
+        }
+        
+        .btn-danger:hover {
+            background-color: rgba(192, 57, 43, 0.8); /* 悬停时略微不透明 */
+        }
+        
+        /* 确保所有按钮类型都继承玻璃质感 */
+        .btn-primary, .btn-success, .btn-danger, .btn-edit, .btn-delete {
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            backdrop-filter: blur(15px) !important;
+            -webkit-backdrop-filter: blur(15px) !important;
+        }
+        
+        .btn-large {
+            font-size: 24px;
+            padding: 15px 30px;
+            width: 100%;
+            border-radius: 50px;
+        }
+        
+        .btn-small {
+            padding: 5px 12px;
+            font-size: 14px;
+            border-radius: 50px;
+        }
+        
+        /* 累计次数按钮样式 */
+        .btn-count {
+            background-color: #FCC25D;
+            color: #2c3e50;
+            font-weight: bold;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2),
+                        0 3px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-count:hover {
+            background-color: #FBB034;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.25),
+                        0 5px 5px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-count:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2),
+                        0 1px 1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 主按钮容器样式 */
+        .main-button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 50px 0;
+            padding: 20px;
+        }
+        
+        /* 圆形3D按钮样式 */
+        .btn-circle-3d {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(145deg, #FF6B6B, #FF8E8E);
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 25px 40px rgba(0, 0, 0, 0.3), /* 增强外部阴影，提升3D感 */
+                0 15px 25px rgba(255, 107, 107, 0.4),
+                inset 0 3px 5px rgba(255, 255, 255, 0.5), /* 增强顶部内发光 */
+                inset 0 -3px 5px rgba(0, 0, 0, 0.2); /* 增强底部内阴影 */
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transform: perspective(1000px) rotateX(0deg) rotateY(0deg); /* 添加透视效果 */
+        }
+        
+        .btn-circle-3d:hover {
+            transform: perspective(1000px) rotateX(5deg) rotateY(5deg) translateY(-8px); /* 悬停时轻微旋转和提升，增强3D感 */
+            box-shadow: 
+                0 35px 50px rgba(0, 0, 0, 0.4), /* 增强悬停阴影 */
+                0 20px 30px rgba(255, 107, 107, 0.5),
+                inset 0 4px 7px rgba(255, 255, 255, 0.6), /* 增强悬停内发光 */
+                inset 0 -4px 7px rgba(0, 0, 0, 0.3); /* 增强悬停内阴影 */
+        }
+        
+        .btn-circle-3d:active {
+            transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(-4px); /* 点击时复位旋转，轻微下沉 */
+            box-shadow: 
+                0 20px 30px rgba(0, 0, 0, 0.3), /* 点击时减小阴影 */
+                0 10px 20px rgba(255, 107, 107, 0.4),
+                inset 0 2px 5px rgba(0, 0, 0, 0.3), /* 点击时增强内阴影 */
+                inset 0 -2px 5px rgba(255, 255, 255, 0.4); /* 点击时增强内发光 */
+        }
+        
+        /* 统计链接样式 */
+        .stats-link {
+            margin-top: 30px;
+            font-size: 18px;
+            color: #3498db;
+            cursor: pointer;
+            text-decoration: underline;
+            transition: all 0.2s ease;
+        }
+        
+        .stats-link:hover {
+            color: #2980b9;
+            transform: translateY(-1px);
+        }
+        
+        /* 名言弹窗样式 */
+        .quote-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+        
+        .quote-text {
+            font-size: 18px;
+            font-style: italic;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .quote-author {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .quote-close {
+            background-color: rgba(52, 152, 219, 0.7);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .quote-close:hover {
+            background-color: rgba(41, 128, 185, 0.8);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* 彩带样式 */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            opacity: 0.8;
+            top: -10px;
+            z-index: 1500;
+            pointer-events: none;
+            animation: confetti-fall linear forwards;
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* 彩带颜色变体 */
+        .confetti.red { background-color: #e74c3c; }
+        .confetti.blue { background-color: #3498db; }
+        .confetti.green { background-color: #2ecc71; }
+        .confetti.yellow { background-color: #f1c40f; }
+        .confetti.purple { background-color: #9b59b6; }
+        .confetti.orange { background-color: #e67e22; }
+        .confetti.pink { background-color: #e91e63; }
+        .confetti.cyan { background-color: #00bcd4; }
+        .confetti.teal { background-color: #009688; }
+        .confetti.lime { background-color: #cddc39; }
+        
+        /* 周切换控件样式 */
+        .week-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .week-info {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .week-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        #date-picker {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        /* 打卡网格样式 */
+        .calendar-grid {
+            overflow-x: auto;
+            margin-top: 20px;
+            perspective: 1000px; /* 3D效果 */
+        }
+        
+        /* 表格动画样式 */
+        /* 翻转动画 */
+        @keyframes flipInY {
+            0% {
+                transform: rotateY(90deg);
+                opacity: 0;
+            }
+            100% {
+                transform: rotateY(0deg);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes flipOutY {
+            0% {
+                transform: rotateY(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: rotateY(90deg);
+                opacity: 0;
+            }
+        }
+        
+        /* 裂开动画 */
+        @keyframes crack {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(0.9) rotate(5deg);
+                filter: blur(2px);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                filter: blur(0);
+            }
+        }
+        
+        /* 淡入淡出动画 */
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+        
+        /* 缩放动画 */
+        @keyframes zoomIn {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes zoomOut {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+        }
+        
+        /* 摇摆动画 */
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            10%, 30%, 50%, 70%, 90% {
+                transform: translateX(-5px);
+            }
+            20%, 40%, 60%, 80% {
+                transform: translateX(5px);
+            }
+        }
+        
+        /* 动画类 */
+        .animation-flip-out {
+            animation: flipOutY 0.5s ease forwards;
+        }
+        
+        .animation-flip-in {
+            animation: flipInY 0.5s ease forwards;
+        }
+        
+        .animation-crack {
+            animation: crack 0.6s ease forwards;
+        }
+        
+        .animation-fade-out {
+            animation: fadeOut 0.3s ease forwards;
+        }
+        
+        .animation-fade-in {
+            animation: fadeIn 0.3s ease forwards;
+        }
+        
+        .animation-zoom-out {
+            animation: zoomOut 0.4s ease forwards;
+        }
+        
+        .animation-zoom-in {
+            animation: zoomIn 0.4s ease forwards;
+        }
+        
+        .animation-shake {
+            animation: shake 0.5s ease forwards;
+        }
+        
+        /* 打卡网格样式 */
+        .calendar-grid {
+            overflow-x: visible !important;
+            margin-top: 15px;
+        }
+        
+        .grid-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            font-size: 13px;
+            table-layout: fixed;
+        }
+        
+        .grid-table th,
+        .grid-table td {
+            border: 1px solid #e9ecef;
+            padding: 3px 2px;
+            text-align: center;
+            min-width: auto;
+            max-width: 55px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .grid-table th:first-child,
+        .grid-table td:first-child {
+            min-width: 110px;
+            max-width: 140px;
+            text-align: left;
+            padding-left: 6px;
+        }
+        
+        .grid-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #555;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 12px;
+            padding: 8px 2px;
+            vertical-align: middle;
+        }
+        
+        .grid-table th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 20;
+            background-color: #e3f2fd;
+        }
+        
+        .grid-table td:first-child {
+            position: sticky;
+            left: 0;
+            background-color: #f0f8ff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-align: center;
+            padding: 8px 6px;
+        }
+        
+        .grid-table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+        
+        .grid-table td:first-child:hover {
+            background-color: #e3f2fd;
+        }
+        
+        .checkmark {
+            color: #2ecc71;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        
+        .empty-cell {
+            background-color: #fafafa;
+        }
+        
+        .date-header {
+            font-size: 11px;
+            padding: 8px 2px;
+        }
+        
+        .date-header .day {
+            display: block;
+            font-weight: bold;
+            line-height: 1.3;
+        }
+        
+        .date-header .weekday {
+            display: block;
+            font-size: 10px;
+            color: #666;
+            line-height: 1.2;
+            margin-top: 2px;
+        }
+        
+        /* 刷新按钮样式调整 */
+        .week-btn {
+            padding: 4px 10px !important;
+            font-size: 12px !important;
+            min-width: auto !important;
+            border-radius: 6px !important;
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #000;
+        }
+        
+        /* 详情页样式 */
+        .detail-header {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .detail-title {
+            font-size: 24px;
+            color: #2c3e50;
+        }
+        
+        .total-count {
+            font-size: 18px;
+            color: #3498db;
+            margin-top: 10px;
+        }
+        
+        .search-container {
+            margin-bottom: 20px;
+        }
+        
+        .checkin-list {
+            margin-top: 20px;
+        }
+        
+        .checkin-item {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .checkin-date {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .checkin-remark {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .checkin-time {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        
+        .checkin-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 3px;
+        }
+        
+        .btn-edit {
+            background-color: rgba(52, 152, 219, 0.7);
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-edit:hover {
+            background-color: rgba(41, 128, 185, 0.8);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-delete {
+            background-color: rgba(231, 76, 60, 0.7);
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-delete:hover {
+            background-color: rgba(192, 57, 43, 0.8);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* 编辑备注输入框样式 */
+        .edit-remark-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            margin-bottom: 10px;
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        /* 分页样式 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        
+        .pagination button {
+            padding: 8px 16px;
+            background-color: rgba(52, 152, 219, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pagination button:hover:not(:disabled) {
+            background-color: rgba(41, 128, 185, 0.8);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .pagination button:disabled {
+            background-color: rgba(189, 195, 199, 0.7);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .page-info {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .week-navigation {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .week-controls {
+                justify-content: center;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .grid-table th,
+            .grid-table td {
+                padding: 6px;
+                min-width: 60px;
+                font-size: 14px;
+            }
+            
+            .checkmark {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <!-- 主按钮区域 -->
+        <div class="main-button-container">
+            <button class="btn btn-circle-3d" onclick="showSupportModal()">支持</button>
+            <div class="stats-link" onclick="showStatsPage()">统计</div>
+        </div>
+        
+        <!-- 统计页面容器 -->
+        <div id="stats-page" style="display: none;">
+            <!-- 打卡记录区域 -->
+            <div class="section" onclick="showAllEventsModal()" style="cursor: pointer;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h2 style="margin: 0; line-height: 1;">打卡记录</h2>
+                    <button class="btn btn-small week-btn" onclick="event.stopPropagation(); refreshCalendarGrid();" style="margin-left: 10px; line-height: 1.5; white-space: nowrap; padding: 6px 14px !important; font-size: 13px !important; border-radius: 6px !important; min-width: 70px;">刷新</button>
+                </div>
+                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">点击查看所有事件</p>
+                
+                <!-- 周导航 -->
+                <div class="week-navigation" onclick="event.stopPropagation()">
+                    <div class="week-info" id="week-info">
+                        <!-- 周信息将通过JavaScript动态生成 -->
+                    </div>
+                    <div class="week-controls">
+                        <button class="btn week-btn" onclick="changeWeek(-1)">上一周</button>
+                        <input type="date" id="date-picker" onchange="goToWeek()">
+                        <button class="btn week-btn" onclick="changeWeek(1)">下一周</button>
+                    </div>
+                </div>
+                
+                <!-- 打卡网格 -->
+                <div class="calendar-grid" id="calendar-grid" onclick="event.stopPropagation()">
+                    <!-- 打卡网格将通过JavaScript动态生成 -->
+                </div>
+            </div>
+            
+            <!-- 添加事件区域 -->
+            <div class="section">
+                <h2>添加事件</h2>
+                <div class="form-row">
+                    <input type="text" id="event-name-input" placeholder="输入事件名称">
+                    <button class="btn btn-primary" onclick="addEvent()">添加事件</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 支持弹窗 -->
+    <div id="support-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSupportModal()">&times;</span>
+            <div class="detail-header">
+                <h2 class="detail-title">选择支持的事件</h2>
+            </div>
+            <div class="form-group">
+                <label for="support-event-select">选择事件：</label>
+                <select id="support-event-select" style="margin-bottom: 20px;">
+                    <!-- 事件选项将通过JavaScript动态生成 -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="support-remark-input">备注：</label>
+                <textarea id="support-remark-input" placeholder="请输入本次支持的详细备注"></textarea>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-primary btn-large" onclick="confirmSupport()">确认支持</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 事件详情模态框 -->
+    <div id="event-detail-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div class="detail-header">
+                <h2 class="detail-title" id="detail-event-name"></h2>
+                <div class="total-count">
+                    总打卡次数：<span id="detail-total-count">0</span>
+                </div>
+            </div>
+            
+            <!-- 方格累计图区域 -->
+            <div style="margin: 20px 0;">
+                <h3 style="margin-bottom: 15px; color: #3498db;">完成情况统计</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div class="chart-type-selector">
+                        <button class="btn btn-small" onclick="showCalendarChart('month')" id="month-btn">月视图</button>
+                        <button class="btn btn-small" onclick="showCalendarChart('year')" id="year-btn">年视图</button>
+                    </div>
+                    <div id="chart-period-info" style="font-size: 16px; font-weight: bold;"></div>
+                </div>
+                <div id="calendar-grid-chart" style="margin: 20px 0;"></div>
+                <div id="completion-rate" style="text-align: center; font-size: 18px; font-weight: bold; margin-top: 15px;"></div>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="搜索备注..." onkeyup="searchCheckins()">
+            </div>
+            
+            <div class="checkin-list" id="checkin-list">
+                <!-- 打卡记录将通过JavaScript动态生成 -->
+            </div>
+            
+            <div class="pagination" id="pagination">
+                <!-- 分页控件将通过JavaScript动态生成 -->
+            </div>
+            
+            <!-- 删除事件按钮 -->
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                <button class="btn btn-danger btn-small" onclick="deleteCurrentEvent()">删除该事件</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 名言弹窗 -->
+    <div id="quote-modal" class="quote-modal" style="display: none;">
+        <div class="quote-text" id="quote-text"></div>
+        <div class="quote-author" id="quote-author"></div>
+        <button class="quote-close" onclick="closeQuoteModal()">关闭</button>
+    </div>
+    
+    <!-- 右键菜单 -->
+    <div id="context-menu" style="display: none; position: fixed; background-color: white; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); border-radius: 4px; z-index: 3000;">
+        <div class="menu-item" onclick="hideEvent()">隐藏事件</div>
+    </div>
+    
+    <!-- 所有事件模态框 -->
+    <div id="all-events-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAllEventsModal()">&times;</span>
+            <div class="detail-header">
+                <h2 class="detail-title">所有事件</h2>
+            </div>
+            <div id="all-events-list">
+                <!-- 所有事件将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        .menu-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .menu-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .all-events-list {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .all-event-item {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .all-event-item:hover {
+            background-color: #e3f2fd;
+        }
+        
+        .event-item-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .event-item-stats {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .event-hidden {
+            opacity: 0.7;
+            border-left-color: #bdc3c7;
+        }
+        
+        .event-hidden::after {
+            content: ' (已隐藏)';
+            color: #999;
+            font-style: italic;
+        }
+        
+        /* 方格图样式 */
+        .calendar-grid-chart {
+            display: grid;
+            gap: 3px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        /* 月视图网格：每周7列 */
+        .calendar-grid-chart.month-view {
+            grid-template-columns: repeat(7, 1fr);
+        }
+        
+        /* 年视图网格：每月一列，共12列 */
+        .calendar-grid-chart.year-view {
+            grid-template-columns: repeat(12, 1fr);
+        }
+        
+        /* 日/月格子样式 */
+        .calendar-day {
+            width: 30px;
+            height: 30px;
+            border-radius: 3px;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        /* 已完成的格子 */
+        .calendar-day.completed {
+            font-weight: bold;
+        }
+        
+        /* 鼠标悬停效果 */
+        .calendar-day:hover {
+            transform: scale(1.1);
+        }
+        
+        /* 图表类型选择器样式 */
+        .chart-type-selector {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* 确保图表类型按钮也有磨砂玻璃效果 */
+        .chart-type-selector .btn {
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            background-color: rgba(52, 152, 219, 0.7);
+            transition: all 0.3s ease;
+        }
+        
+        .chart-type-selector .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* 莫兰迪色系 */
+        .morandi-1 { background-color: #C9B1BD; }
+        .morandi-2 { background-color: #B0C4DE; }
+        .morandi-3 { background-color: #D7CCC8; }
+        .morandi-4 { background-color: #AED581; }
+        .morandi-5 { background-color: #FFE0B2; }
+        .morandi-6 { background-color: #F48FB1; }
+        .morandi-7 { background-color: #B39DDB; }
+        .morandi-8 { background-color: #81D4FA; }
+        
+        /* 马卡龙色系 */
+        .macaron-1 { background-color: #FFD1DC; }
+        .macaron-2 { background-color: #D8BFD8; }
+        .macaron-3 { background-color: #B0E0E6; }
+        .macaron-4 { background-color: #98FB98; }
+        .macaron-5 { background-color: #F0E68C; }
+        .macaron-6 { background-color: #FFA07A; }
+        .macaron-7 { background-color: #20B2AA; }
+        .macaron-8 { background-color: #FF69B4; }
+        
+        /* 周导航按钮样式（调整圆角大小） */
+        .week-btn {
+            border-radius: 10px !important; /* 调整为更小的圆角 */
+            backdrop-filter: blur(15px) !important; /* 玻璃质感 */
+            -webkit-backdrop-filter: blur(15px) !important;
+            background-color: rgba(52, 152, 219, 0.7) !important; /* 半透明背景 */
+            border: 1px solid rgba(255, 255, 255, 0.3) !important; /* 半透明边框 */
+            box-shadow: 
+                0 4px 15px rgba(0, 0, 0, 0.1) !important,
+                0 1px 2px rgba(255, 255, 255, 0.5) inset !important,
+                0 -1px 2px rgba(0, 0, 0, 0.1) inset !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .week-btn:hover {
+            background-color: rgba(41, 128, 185, 0.8) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 
+                0 6px 20px rgba(0, 0, 0, 0.15) !important,
+                0 2px 4px rgba(255, 255, 255, 0.6) inset !important,
+                0 -2px 4px rgba(0, 0, 0, 0.15) inset !important;
+        }
+        
+        /* 孟菲斯色系 */
+        .memphis-1 { background-color: #FF9E9E; }
+        .memphis-2 { background-color: #91D3F9; }
+        .memphis-3 { background-color: #93E9BE; }
+        .memphis-4 { background-color: #FFE382; }
+        .memphis-5 { background-color: #CCA8E9; }
+        .memphis-6 { background-color: #FFB347; }
+        .memphis-7 { background-color: #77DD77; }
+        .memphis-8 { background-color: #FF6961; }
+    </style>
+    
+    <script>
+        // 全局变量
+        let events = JSON.parse(localStorage.getItem('counterEvents')) || [];
+        let currentDate = new Date(); // 当前显示的周的基准日期
+        let currentEvent = null; // 当前查看详情的事件
+        let currentPage = 1; // 当前详情页页码
+        const itemsPerPage = 10; // 每页显示的打卡记录数
+        let searchQuery = ''; // 当前搜索关键词
+        let usedQuotes = []; // 已使用的名言索引
+        let contextMenuEventId = null; // 当前右键点击的事件ID
+        
+        // 颜色方案：莫兰迪、马卡龙、孟菲斯色系
+        const colorSchemes = {
+            morandi: ['#C9B1BD', '#B0C4DE', '#D7CCC8', '#AED581', '#FFE0B2', '#F48FB1', '#B39DDB', '#81D4FA'],
+            macaron: ['#FFD1DC', '#D8BFD8', '#B0E0E6', '#98FB98', '#F0E68C', '#FFA07A', '#20B2AA', '#FF69B4'],
+            memphis: ['#FF9E9E', '#91D3F9', '#93E9BE', '#FFE382', '#CCA8E9', '#FFB347', '#77DD77', '#FF6961']
+        };
+        
+        // 优先使用鲜艳的颜色，顺序：孟菲斯色系（鲜艳）→ 马卡龙色系（明亮）→ 莫兰迪色系（柔和）
+        const allColors = [...colorSchemes.memphis, ...colorSchemes.macaron, ...colorSchemes.morandi];
+        
+        // 名言库
+        const quotes = [
+            // 马斯克
+            { text: "When something is important enough, you do it even if the odds are not in your favor.", author: "-- Elon Musk" },
+            { text: "I think the biggest problem with conventional education is that it's too rigid and doesn't encourage creativity.", author: "-- Elon Musk" },
+            
+            // 乔布斯
+            { text: "Your time is limited, don't waste it living someone else's life.", author: "-- Steve Jobs" },
+            { text: "Innovation distinguishes between a leader and a follower.", author: "-- Steve Jobs" },
+            
+            // 王维
+            { text: "行到水穷处，坐看云起时。", author: "-- 王维" },
+            { text: "明月松间照，清泉石上流。", author: "-- 王维" },
+            
+            // 李清照
+            { text: "莫道不消魂，帘卷西风，人比黄花瘦。", author: "-- 李清照" },
+            { text: "生当作人杰，死亦为鬼雄。", author: "-- 李清照" },
+            
+            // 文学人物
+            { text: "I want to live the life I choose, not the one others expect of me.", author: "-- Jo March, Little Women" },
+            { text: "Tomorrow is another day.", author: "-- Scarlett O'Hara, Gone with the Wind" },
+            
+            // 国外冷门励志句子
+            { text: "The only way to do great work is to love what you do. If you haven't found it yet, keep looking. Don't settle.", author: "-- Steve Jobs" },
+            { text: "Stay hungry, stay foolish.", author: "-- Steve Jobs" },
+            { text: "Success is a lousy teacher. It seduces smart people into thinking they can't lose.", author: "-- Bill Gates" },
+            { text: "If you want to build a ship, don't drum up people together to collect wood and don't assign them tasks and work, but rather teach them to long for the endless immensity of the sea.", author: "-- Antoine de Saint-Exupéry" },
+            { text: "The future belongs to those who believe in the beauty of their dreams.", author: "-- Eleanor Roosevelt" },
+            
+            // 更多冷门国外句子
+            { text: "The greatest glory in living lies not in never falling, but in rising every time we fall.", author: "-- Nelson Mandela" },
+            { text: "I can't change the direction of the wind, but I can adjust my sails to always reach my destination.", author: "-- Jimmy Dean" },
+            { text: "What lies behind us and what lies before us are tiny matters compared to what lies within us.", author: "-- Ralph Waldo Emerson" },
+            { text: "The only person you are destined to become is the person you decide to be.", author: "-- Ralph Waldo Emerson" },
+            { text: "You miss 100% of the shots you don't take.", author: "-- Wayne Gretzky" },
+            
+            // 更多有深意的句子
+            { text: "In the end, it's not the years in your life that count. It's the life in your years.", author: "-- Abraham Lincoln" },
+            { text: "Life is 10% what happens to us and 90% how we react to it.", author: "-- Charles R. Swindoll" },
+            { text: "Failure is simply the opportunity to begin again, this time more intelligently.", author: "-- Henry Ford" },
+            { text: "Innovation is the ability to see change as an opportunity - not a threat.", author: "-- Steve Jobs" },
+            { text: "Do not go where the path may lead, go instead where there is no path and leave a trail.", author: "-- Ralph Waldo Emerson" },
+            
+            // 隐藏款
+            { text: "The best way to predict the future is to create it.", author: "-- Peter Drucker" },
+            { text: "Success is walking from failure to failure with no loss of enthusiasm.", author: "-- Winston Churchill" },
+            { text: "Don't watch the clock; do what it does. Keep going.", author: "-- Sam Levenson" },
+            { text: "The harder I work, the luckier I get.", author: "-- Samuel Goldwyn" },
+            { text: "Opportunities don't happen. You create them.", author: "-- Chris Grosser" },
+            
+            // 更多冷门国外句子
+            { text: "Believe you can and you're halfway there.", author: "-- Theodore Roosevelt" },
+            { text: "Everything you've ever wanted is on the other side of fear.", author: "-- George Addair" },
+            { text: "Dream big and dare to fail.", author: "-- Norman Vaughan" },
+            { text: "It is never too late to be what you might have been.", author: "-- George Eliot" },
+            { text: "The only impossible journey is the one you never begin.", author: "-- Tony Robbins" },
+            
+            // 更多有深意的句子
+            { text: "You are never too old to set another goal or to dream a new dream.", author: "-- C.S. Lewis" },
+            { text: "The magic in new beginnings is truly the most powerful of them all.", author: "-- Josiyah Martin" },
+            { text: "The secret of getting ahead is getting started.", author: "-- Mark Twain" },
+            { text: "Don't be afraid to give up the good to go for the great.", author: "-- John D. Rockefeller" },
+            { text: "The way to get started is to quit talking and begin doing.", author: "-- Walt Disney" },
+            
+            // 最终隐藏款
+            { text: "Success usually comes to those who are too busy to be looking for it.", author: "-- Henry David Thoreau" },
+            { text: "The only place where success comes before work is in the dictionary.", author: "-- Vidal Sassoon" },
+            { text: "Life is either a daring adventure or nothing at all.", author: "-- Helen Keller" },
+            { text: "If you want to lift yourself up, lift up someone else.", author: "-- Booker T. Washington" },
+            { text: "The future starts today, not tomorrow.", author: "-- Pope John Paul II" },
+            
+            // 马斯克
+            { text: "当某事足够重要，你就去做它，即使胜算不大。", author: "-- 埃隆·马斯克" },
+            { text: "我认为普通人的思维方式被传统和习惯束缚得太严重了。", author: "-- 埃隆·马斯克" },
+            
+            // 乔布斯
+            { text: "你的时间有限，不要浪费在重复别人的生活上。", author: "-- 史蒂夫·乔布斯" },
+            { text: "创新区分领导者和追随者。", author: "-- 史蒂夫·乔布斯" },
+            
+            // 王维
+            { text: "行到水穷处，坐看云起时。", author: "-- 王维" },
+            { text: "明月松间照，清泉石上流。", author: "-- 王维" },
+            
+            // 李清照
+            { text: "莫道不消魂，帘卷西风，人比黄花瘦。", author: "-- 李清照" },
+            { text: "生当作人杰，死亦为鬼雄。", author: "-- 李清照" },
+            
+            // 文学人物
+            { text: "我要把自己的生命过成我想要的样子，而不是别人期望的样子。", author: "-- 《小妇人》 乔" },
+            { text: "明天又是新的一天。", author: "-- 《乱世佳人》 斯嘉丽" },
+            
+            // 国外冷门励志句子
+            { text: "The only way to do great work is to love what you do. If you haven't found it yet, keep looking. Don't settle. ", author: "-- 史蒂夫·乔布斯" },
+            { text: "Stay hungry, stay foolish. ", author: "-- 史蒂夫·乔布斯" },
+            { text: "成功是一个糟糕的老师，它诱使聪明人认为他们不会失败。", author: "-- 比尔·盖茨" },
+            { text: "如果你想造一艘船，不要鼓励人们去伐木、去分配工作、去发号施令。你应该做的是，教会人们去渴望大海的宽广无垠。", author: "-- 安托万·德·圣-埃克苏佩里" },
+            { text: "The future belongs to those who believe in the beauty of their dreams. ", author: "-- 埃莉诺·罗斯福" },
+            
+            // 更多冷门国外句子
+            { text: "It does not matter how slowly you go as long as you do not stop. ", author: "-- 孔子（英文表达）" },
+            { text: "The greatest glory in living lies not in never falling, but in rising every time we fall. ", author: "-- 纳尔逊·曼德拉" },
+            { text: "I can't change the direction of the wind, but I can adjust my sails to always reach my destination. ", author: "-- 吉米·迪恩" },
+            { text: "What lies behind us and what lies before us are tiny matters compared to what lies within us. ", author: "-- 拉尔夫·沃尔多·爱默生" },
+            { text: "The only person you are destined to become is the person you decide to be. ", author: "-- 拉尔夫·沃尔多·爱默生" },
+            
+            // 更多有深意的句子
+            { text: "The journey of a thousand miles begins with one step. ", author: "-- 老子（英文表达）" },
+            { text: "You miss 100% of the shots you don't take. ", author: "-- 韦恩·格雷茨基" },
+            { text: "The mind is everything. What you think you become. ", author: "-- 佛陀" },
+            { text: "In the end, it's not the years in your life that count. It's the life in your years. ", author: "-- 亚伯拉罕·林肯" },
+            { text: "Life is 10% what happens to us and 90% how we react to it. ", author: "-- 查尔斯·R·斯温多尔" },
+            
+            // 更多特定人物
+            { text: "Failure is simply the opportunity to begin again, this time more intelligently. ", author: "-- 亨利·福特" },
+            { text: "Innovation is the ability to see change as an opportunity - not a threat. ", author: "-- 史蒂夫·乔布斯" },
+            { text: "The only limit to our realization of tomorrow will be our doubts of today. ", author: "-- 富兰克林·D·罗斯福" },
+            { text: "Do not go where the path may lead, go instead where there is no path and leave a trail. ", author: "-- 拉尔夫·沃尔多·爱默生" },
+            { text: "You have within you right now, everything you need to deal with whatever the world can throw at you. ", author: "-- 布莱恩·特雷西" },
+            
+            // 隐藏款
+            { text: "The best way to predict the future is to create it. ", author: "-- 彼得·德鲁克" },
+            { text: "Success is walking from failure to failure with no loss of enthusiasm. ", author: "-- 温斯顿·丘吉尔" },
+            { text: "Don't watch the clock; do what it does. Keep going. ", author: "-- 萨姆·莱文森" },
+            { text: "The harder I work, the luckier I get. ", author: "-- 塞缪尔·戈尔德温" },
+            { text: "Opportunities don't happen. You create them. ", author: "-- 克里斯·格雷厄姆" },
+            
+            // 更多冷门国外句子
+            { text: "Believe you can and you're halfway there. ", author: "-- 西奥多·罗斯福" },
+            { text: "Everything you've ever wanted is on the other side of fear. ", author: "-- 乔治·阿迪" },
+            { text: "Dream big and dare to fail. ", author: "-- 诺曼·沃恩" },
+            { text: "It is never too late to be what you might have been. ", author: "-- 乔治·艾略特" },
+            { text: "The only impossible journey is the one you never begin. ", author: "-- 托尼·罗宾斯" },
+            
+            // 更多有深意的句子
+            { text: "You are never too old to set another goal or to dream a new dream. ", author: "-- C·S·刘易斯" },
+            { text: "The magic in new beginnings is truly the most powerful of them all. ", author: "--  Josiyah Martin" },
+            { text: "The secret of getting ahead is getting started. ", author: "-- 马克·吐温" },
+            { text: "Don't be afraid to give up the good to go for the great. ", author: "-- 约翰·D·洛克菲勒" },
+            { text: "The way to get started is to quit talking and begin doing. ", author: "-- 华特·迪士尼" },
+            
+            // 最终隐藏款
+            { text: "Success usually comes to those who are too busy to be looking for it. ", author: "-- 亨利·大卫·梭罗" },
+            { text: "The only place where success comes before work is in the dictionary. ", author: "-- Vidal Sassoon" },
+            { text: "Life is either a daring adventure or nothing at all. ", author: "-- 海伦·凯勒" },
+            { text: "If you want to lift yourself up, lift up someone else. ", author: "-- 布克·T·华盛顿" },
+            { text: "The future starts today, not tomorrow. ", author: "-- 教宗若望·保禄二世" }
+        ];
+        
+        // 确保现有事件有必要的字段
+        events.forEach((event, index) => {
+            if (!event.checkins) event.checkins = {};
+            if (!event.remarks) event.remarks = [];
+            if (event.hidden === undefined) event.hidden = false;
+            // 为每个事件分配独特的颜色
+            if (!event.color) {
+                event.color = allColors[index % allColors.length];
+            }
+        });
+        
+        // 获取事件的颜色
+        function getEventColor(event) {
+            return event.color || '#3498db';
+        }
+        
+        // 格式化日期为YYYY-MM-DD（兼容性版本）
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        // 为不支持Array.find的浏览器添加polyfill
+        if (!Array.prototype.find) {
+            Array.prototype.find = function(predicate) {
+                if (this === null) {
+                    throw new TypeError('Array.prototype.find called on null or undefined');
+                }
+                if (typeof predicate !== 'function') {
+                    throw new TypeError('predicate must be a function');
+                }
+                const list = Object(this);
+                const length = list.length >>> 0;
+                const thisArg = arguments[1];
+                let value;
+                
+                for (let i = 0; i < length; i++) {
+                    value = list[i];
+                    if (predicate.call(thisArg, value, i, list)) {
+                        return value;
+                    }
+                }
+                return undefined;
+            };
+        }
+        
+        // 为不支持String.trim的浏览器添加polyfill
+        if (!String.prototype.trim) {
+            String.prototype.trim = function() {
+                return this.replace(/^\s+|\s+$/g, '');
+            };
+        }
+        
+        // 为不支持String.padStart的浏览器添加polyfill
+        if (!String.prototype.padStart) {
+            String.prototype.padStart = function(targetLength, padString) {
+                targetLength = targetLength >> 0; // 确保是数字
+                padString = String(typeof padString !== 'undefined' ? padString : ' ');
+                if (this.length > targetLength) {
+                    return String(this);
+                } else {
+                    targetLength = targetLength - this.length;
+                    if (targetLength > padString.length) {
+                        padString += padString.repeat(targetLength / padString.length); // 截断或重复填充字符串
+                    }
+                    return padString.slice(0, targetLength) + String(this);
+                }
+            };
+        }
+        
+        // 获取指定日期所在周的第一天（周日）
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay(); // 0是周日，1是周一，...，6是周六
+            const diff = d.getDate() - day; // 调整到周日
+            return new Date(d.setDate(diff));
+        }
+        
+        // 获取指定周的日期列表（周日到周六）
+        function getWeekDates(weekStart) {
+            const dates = [];
+            const start = new Date(weekStart);
+            
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(start);
+                date.setDate(start.getDate() + i);
+                dates.push(date);
+            }
+            
+            return dates;
+        }
+        
+        // 获取当前显示周的信息
+        function getCurrentWeekInfo() {
+            const weekStart = getWeekStart(currentDate);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            
+            return {
+                start: weekStart,
+                end: weekEnd,
+                dates: getWeekDates(weekStart)
+            };
+        }
+        
+        // 渲染周信息
+        function renderWeekInfo() {
+            const weekInfo = getCurrentWeekInfo();
+            const weekInfoEl = document.getElementById('week-info');
+            const datePicker = document.getElementById('date-picker');
+            
+            // 设置周信息文本
+            const startStr = weekInfo.start.toLocaleDateString('zh-CN');
+            const endStr = weekInfo.end.toLocaleDateString('zh-CN');
+            weekInfoEl.textContent = `${startStr} 至 ${endStr}`;
+            
+            // 设置日期选择器的值
+            datePicker.value = formatDate(currentDate);
+        }
+        
+        // 渲染打卡网格
+        function renderCalendarGrid() {
+            const calendarGrid = document.getElementById('calendar-grid');
+            const weekInfo = getCurrentWeekInfo();
+            const dates = weekInfo.dates;
+            
+            // 过滤掉隐藏的事件
+            const visibleEvents = events.filter(e => !e.hidden);
+            
+            if (visibleEvents.length === 0) {
+                calendarGrid.innerHTML = '<p>暂无事件，请先添加事件</p>';
+                return;
+            }
+            
+            let html = '<table class="grid-table">';
+            
+            // 表头行（日期）
+            html += '<tr>';
+            html += '<th>事件名称</th>';
+            
+            dates.forEach(date => {
+                const dateStr = formatDate(date);
+                const day = date.getDate();
+                const weekday = date.toLocaleDateString('zh-CN', { weekday: 'short' });
+                html += `
+                    <th>
+                        <div class="date-header">
+                            <span class="day">${day}</span>
+                            <span class="weekday">${weekday}</span>
+                        </div>
+                    </th>
+                `;
+            });
+            
+            html += '</tr>';
+            
+            // 数据行（事件和打卡状态）
+            visibleEvents.forEach(event => {
+                html += `<tr>`;
+                html += `<td onclick="showEventDetail(${event.id})" oncontextmenu="showContextMenu(event, ${event.id})">${event.name}</td>`;
+                
+                dates.forEach(date => {
+                    const dateStr = formatDate(date);
+                    const hasCheckin = event.checkins[dateStr];
+                    
+                    html += `<td>`;
+                    if (hasCheckin) {
+                        html += '<span class="checkmark">✓</span>';
+                    } else {
+                        html += '<span class="empty-cell"></span>';
+                    }
+                    html += `</td>`;
+                });
+                
+                html += `</tr>`;
+            });
+            
+            html += '</table>';
+            calendarGrid.innerHTML = html;
+        }
+        
+        // 刷新日历网格（带随机动画效果）
+        function refreshCalendarGrid() {
+            const calendarGrid = document.getElementById('calendar-grid');
+            
+            // 随机选择动画类型
+            const animationTypes = [
+                { out: 'flip-out', in: 'flip-in' },
+                { out: 'fade-out', in: 'fade-in' },
+                { out: 'zoom-out', in: 'zoom-in' },
+                { out: 'crack', in: null }, // 裂开动画不需要进入动画
+                { out: 'shake', in: null }  // 摇摆动画不需要进入动画
+            ];
+            
+            const randomAnimation = animationTypes[Math.floor(Math.random() * animationTypes.length)];
+            
+            // 先播放退出动画
+            if (randomAnimation.out) {
+                calendarGrid.classList.add(`animation-${randomAnimation.out}`);
+            }
+            
+            // 等待动画结束后刷新表格
+            setTimeout(() => {
+                // 移除动画类
+                calendarGrid.classList.remove(`animation-${randomAnimation.out}`);
+                
+                // 刷新表格内容
+                renderCalendarGrid();
+                
+                // 播放进入动画（如果有）
+                if (randomAnimation.in) {
+                    calendarGrid.classList.add(`animation-${randomAnimation.in}`);
+                    
+                    // 动画结束后移除类
+                    setTimeout(() => {
+                        calendarGrid.classList.remove(`animation-${randomAnimation.in}`);
+                    }, 500); // 与动画时长匹配
+                }
+            }, randomAnimation.out === 'crack' ? 600 : 400); // 根据不同动画调整延迟时间
+        }
+        
+        // 渲染事件选择下拉菜单
+        function renderEventSelect() {
+            const eventSelect = document.getElementById('event-select');
+            
+            // 检查元素是否存在
+            if (!eventSelect) return;
+            
+            eventSelect.innerHTML = '';
+            
+            // 过滤掉隐藏的事件
+            const visibleEvents = events.filter(e => !e.hidden);
+            
+            if (visibleEvents.length === 0) {
+                eventSelect.innerHTML = '<option value="">暂无事件</option>';
+                return;
+            }
+            
+            visibleEvents.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event.id;
+                option.textContent = event.name;
+                eventSelect.appendChild(option);
+            });
+        }
+        
+        // 切换周
+        function changeWeek(direction) {
+            currentDate.setDate(currentDate.getDate() + direction * 7);
+            renderWeekInfo();
+            renderCalendarGrid();
+        }
+        
+        // 跳转到指定日期所在的周
+        function goToWeek() {
+            const datePicker = document.getElementById('date-picker');
+            currentDate = new Date(datePicker.value);
+            renderWeekInfo();
+            renderCalendarGrid();
+        }
+        
+        // 显示事件详情
+        function showEventDetail(eventId) {
+            currentEvent = events.find(e => e.id === eventId);
+            if (!currentEvent) return;
+            
+            currentPage = 1;
+            searchQuery = '';
+            
+            // 更新详情页内容
+            document.getElementById('detail-event-name').textContent = currentEvent.name;
+            document.getElementById('detail-total-count').textContent = currentEvent.count;
+            document.getElementById('search-input').value = '';
+            
+            // 渲染打卡记录
+            renderCheckinList();
+            
+            // 绘制初始方格图
+            showCalendarChart('month');
+            
+            // 显示模态框
+            const modal = document.getElementById('event-detail-modal');
+            modal.style.display = 'block';
+        }
+        
+        // 更新图表
+        function updateChart() {
+            if (!currentEvent) return;
+            
+            const datePicker = document.getElementById('chart-date-picker');
+            const selectedDate = new Date(datePicker.value);
+            
+            drawChart(currentEvent, selectedDate);
+        }
+        
+        // 绘制折线图
+        function drawChart(event, baseDate) {
+            const canvas = document.getElementById('checkin-chart');
+            const ctx = canvas.getContext('2d');
+            
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 计算一周的日期范围（周日到周六）
+            const weekStart = getWeekStart(baseDate);
+            const dates = [];
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(weekStart);
+                date.setDate(weekStart.getDate() + i);
+                dates.push(date);
+            }
+            
+            // 获取每日打卡次数
+            const dailyCounts = dates.map(date => {
+                const dateStr = formatDate(date);
+                // 统计当天的打卡次数（如果有多次）
+                const count = event.remarks.filter(remark => {
+                    const remarkDate = new Date(remark.time);
+                    // 确保日期字符串格式一致，避免时区问题
+                    const remarkDateStr = formatDate(remarkDate);
+                    return remarkDateStr === dateStr;
+                }).length;
+                return count;
+            });
+            
+            // 图表配置
+            const margin = { top: 20, right: 20, bottom: 40, left: 50 };
+            const width = canvas.width - margin.left - margin.right;
+            const height = canvas.height - margin.top - margin.bottom;
+            
+            // 计算最大值用于缩放
+            const maxCount = Math.max(...dailyCounts, 1); // 至少为1，避免图表高度为0
+            
+            // 绘制背景
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(margin.left, margin.top, width, height);
+            
+            // 绘制网格线
+            ctx.strokeStyle = '#e9ecef';
+            ctx.lineWidth = 1;
+            
+            // 垂直线
+            for (let i = 0; i <= 7; i++) {
+                const x = margin.left + (width / 7) * i;
+                ctx.beginPath();
+                ctx.moveTo(x, margin.top);
+                ctx.lineTo(x, margin.top + height);
+                ctx.stroke();
+            }
+            
+            // 水平线
+            for (let i = 0; i <= 5; i++) {
+                const y = margin.top + (height / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(margin.left, y);
+                ctx.lineTo(margin.left + width, y);
+                ctx.stroke();
+            }
+            
+            // 绘制坐标轴
+            ctx.strokeStyle = '#34495e';
+            ctx.lineWidth = 2;
+            
+            // X轴
+            ctx.beginPath();
+            ctx.moveTo(margin.left, margin.top + height);
+            ctx.lineTo(margin.left + width, margin.top + height);
+            ctx.stroke();
+            
+            // Y轴
+            ctx.beginPath();
+            ctx.moveTo(margin.left, margin.top);
+            ctx.lineTo(margin.left, margin.top + height);
+            ctx.stroke();
+            
+            // 绘制折线
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 3;
+            ctx.fillStyle = '#3498db';
+            
+            ctx.beginPath();
+            dates.forEach((date, i) => {
+                const x = margin.left + (width / 7) * i + (width / 14); // 居中
+                const y = margin.top + height - (dailyCounts[i] / maxCount) * height;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+                
+                // 绘制数据点
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                
+                // 绘制数据值
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(dailyCounts[i], x, y - 10);
+            });
+            ctx.stroke();
+            
+            // 绘制X轴标签（日期）
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            dates.forEach((date, i) => {
+                const x = margin.left + (width / 7) * i + (width / 14);
+                const month = date.getMonth() + 1;
+                const day = date.getDate();
+                const dateLabel = `${month}.${day}`;
+                ctx.fillText(dateLabel, x, margin.top + height + 20);
+            });
+            
+            // 绘制Y轴标签（次数）
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 5; i++) {
+                const y = margin.top + (height / 5) * i;
+                const value = Math.round((maxCount / 5) * (5 - i));
+                ctx.fillText(value, margin.left - 10, y + 5);
+            }
+        }
+        
+        // 关闭详情模态框
+        function closeModal() {
+            const modal = document.getElementById('event-detail-modal');
+            modal.style.display = 'none';
+        }
+        
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('event-detail-modal');
+            const supportModal = document.getElementById('support-modal');
+            const quoteModal = document.getElementById('quote-modal');
+            const allEventsModal = document.getElementById('all-events-modal');
+            
+            if (event.target == modal) {
+                closeModal();
+            } else if (event.target == supportModal) {
+                closeSupportModal();
+            } else if (event.target == quoteModal) {
+                closeQuoteModal();
+            } else if (event.target == allEventsModal) {
+                closeAllEventsModal();
+            }
+        }
+        
+        // 获取随机名言
+        function getRandomQuote() {
+            // 如果所有名言都已使用，重置使用记录
+            if (usedQuotes.length >= quotes.length) {
+                usedQuotes = [];
+            }
+            
+            // 随机选择一个未使用的名言
+            let availableIndices = [];
+            for (let i = 0; i < quotes.length; i++) {
+                if (!usedQuotes.includes(i)) {
+                    availableIndices.push(i);
+                }
+            }
+            
+            const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+            usedQuotes.push(randomIndex);
+            
+            return quotes[randomIndex];
+        }
+        
+        // 显示名言弹窗
+        function showQuote() {
+            const quote = getRandomQuote();
+            const quoteModal = document.getElementById('quote-modal');
+            const quoteText = document.getElementById('quote-text');
+            const quoteAuthor = document.getElementById('quote-author');
+            
+            quoteText.textContent = quote.text;
+            quoteAuthor.textContent = quote.author;
+            quoteModal.style.display = 'block';
+        }
+        
+        // 关闭名言弹窗
+        function closeQuoteModal() {
+            const quoteModal = document.getElementById('quote-modal');
+            quoteModal.style.display = 'none';
+        }
+        
+        // 生成彩带效果
+        function createConfetti() {
+            const confettiCount = 80; // 增加彩带数量
+            const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'cyan', 'teal', 'lime'];
+            
+            for (let i = 0; i < confettiCount; i++) {
+                // 创建彩带元素
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                
+                // 随机颜色
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.classList.add(randomColor);
+                
+                // 随机大小和形状
+                const size = Math.random() * 8 + 4; // 4-12px，减小尺寸，提高移动端性能
+                confetti.style.width = size + 'px';
+                confetti.style.height = size + 'px';
+                
+                // 随机形状
+                const shapeType = Math.floor(Math.random() * 3);
+                if (shapeType === 1) {
+                    confetti.style.borderRadius = '50%'; // 圆形
+                } else if (shapeType === 2) {
+                    confetti.style.transform = 'rotate(45deg)'; // 菱形
+                }
+                
+                // 随机起始位置
+                const randomX = Math.random() * window.innerWidth;
+                const randomY = -20; // 从顶部开始
+                confetti.style.left = randomX + 'px';
+                confetti.style.top = randomY + 'px';
+                confetti.style.position = 'fixed'; // 确保定位正确
+                confetti.style.zIndex = '1500'; // 确保在正确的层级
+                confetti.style.pointerEvents = 'none'; // 避免影响其他元素交互
+                
+                // 简化动画，只使用CSS动画
+                const duration = Math.random() * 3 + 2; // 2-5秒
+                confetti.style.animation = `confetti-fall ${duration}s linear forwards`;
+                
+                // 添加到页面
+                document.body.appendChild(confetti);
+                
+                // 动画结束后移除元素（使用兼容性更好的removeChild方法）
+                setTimeout(() => {
+                    if (confetti.parentNode) {
+                        confetti.parentNode.removeChild(confetti);
+                    }
+                }, duration * 1000);
+            }
+        }
+        
+        // 显示右键菜单
+        function showContextMenu(event, eventId) {
+            event.preventDefault();
+            
+            contextMenuEventId = eventId;
+            const contextMenu = document.getElementById('context-menu');
+            
+            // 显示菜单并定位到鼠标位置
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = event.pageX + 'px';
+            contextMenu.style.top = event.pageY + 'px';
+        }
+        
+        // 隐藏右键菜单
+        function hideContextMenu() {
+            const contextMenu = document.getElementById('context-menu');
+            contextMenu.style.display = 'none';
+        }
+        
+        // 点击页面其他地方隐藏右键菜单
+        document.addEventListener('click', hideContextMenu);
+        
+        // 页面加载时初始化支持按钮颜色
+        document.addEventListener('DOMContentLoaded', function() {
+            changeSupportButtonColor();
+        });
+        
+        // 隐藏事件
+        function hideEvent() {
+            const event = events.find(e => e.id === contextMenuEventId);
+            if (event) {
+                event.hidden = true;
+                saveEvents();
+                renderCalendarGrid();
+                renderEventSelect();
+                renderAllEventsList();
+                hideContextMenu();
+            }
+        }
+        
+        // 显示事件
+        function showEvent() {
+            const event = events.find(e => e.id === contextMenuEventId);
+            if (event) {
+                event.hidden = false;
+                saveEvents();
+                renderCalendarGrid();
+                renderEventSelect();
+                renderAllEventsList();
+                hideContextMenu();
+            }
+        }
+        
+        // 显示所有事件的右键菜单
+        function showAllEventsContextMenu(event, eventId, isHidden) {
+            event.preventDefault();
+            
+            contextMenuEventId = eventId;
+            const contextMenu = document.getElementById('context-menu');
+            
+            // 根据事件状态显示不同的菜单选项
+            const menuItems = contextMenu.querySelectorAll('.menu-item');
+            menuItems.forEach(item => item.remove());
+            
+            if (isHidden) {
+                // 已隐藏事件：显示显示事件选项
+                const showItem = document.createElement('div');
+                showItem.className = 'menu-item';
+                showItem.textContent = '显示事件';
+                showItem.onclick = showEvent;
+                contextMenu.appendChild(showItem);
+            } else {
+                // 显示中事件：显示隐藏事件选项
+                const hideItem = document.createElement('div');
+                hideItem.className = 'menu-item';
+                hideItem.textContent = '隐藏事件';
+                hideItem.onclick = hideEvent;
+                contextMenu.appendChild(hideItem);
+            }
+            
+            // 显示菜单并定位到鼠标位置
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = event.pageX + 'px';
+            contextMenu.style.top = event.pageY + 'px';
+        }
+        
+        // 显示所有事件模态框
+        function showAllEventsModal() {
+            const modal = document.getElementById('all-events-modal');
+            renderAllEventsList();
+            modal.style.display = 'block';
+        }
+        
+        // 显示支持弹窗 - 已修复的函数
+        function showSupportModal() {
+            // 渲染支持事件选择下拉框
+            renderSupportEventSelect();
+            
+            const modal = document.getElementById('support-modal');
+            modal.style.display = 'block';
+            
+            // 每次点击按钮时改变颜色
+            changeSupportButtonColor();
+        }
+        
+        // 随机改变支持按钮的颜色
+        function changeSupportButtonColor() {
+            const button = document.querySelector('.btn-circle-3d');
+            if (!button) return;
+            
+            // 从指定色系中随机选择两种不同的颜色
+            let color1, color2;
+            do {
+                color1 = allColors[Math.floor(Math.random() * allColors.length)];
+                color2 = allColors[Math.floor(Math.random() * allColors.length)];
+            } while (color1 === color2); // 确保两种颜色不同
+            
+            // 设置渐变背景，每次使用不同的角度
+            const angle = Math.floor(Math.random() * 360);
+            button.style.background = `linear-gradient(${angle}deg, ${color1}, ${color2})`;
+            
+            // 更新阴影颜色以匹配背景
+            button.style.boxShadow = `
+                0 20px 30px rgba(${hexToRgb(color1)}, 0.3),
+                0 10px 15px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1)
+            `;
+        }
+        
+        // 将十六进制颜色转换为RGB
+        function hexToRgb(hex) {
+            // 移除#号
+            hex = hex.replace(/^#/, '');
+            
+            // 解析颜色值
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            
+            return `${r}, ${g}, ${b}`;
+        }
+        
+        // 关闭支持弹窗
+        function closeSupportModal() {
+            const modal = document.getElementById('support-modal');
+            modal.style.display = 'none';
+            
+            // 清空输入内容
+            document.getElementById('support-remark-input').value = '';
+        }
+        
+        // 显示日历方格图
+        function showCalendarChart(type) {
+            if (!currentEvent) return;
+            
+            // 更新按钮状态
+            document.getElementById('month-btn').classList.remove('btn-primary');
+            document.getElementById('year-btn').classList.remove('btn-primary');
+            document.getElementById(`${type}-btn`).classList.add('btn-primary');
+            
+            // 绘制对应类型的图表
+            if (type === 'month') {
+                drawMonthlyChart(currentEvent);
+            } else {
+                drawYearlyChart(currentEvent);
+            }
+        }
+        
+        // 绘制月视图方格图
+        function drawMonthlyChart(event) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            
+            // 设置当前显示的月份
+            const startDate = new Date(year, month, 1);
+            const endDate = new Date(year, month + 1, 0);
+            const totalDays = endDate.getDate();
+            
+            // 更新周期信息
+            document.getElementById('chart-period-info').textContent = `${year}年${month + 1}月`;
+            
+            // 计算已完成的天数
+            const completedDays = [];
+            event.remarks.forEach(remark => {
+                const remarkDate = new Date(remark.time);
+                if (remarkDate.getFullYear() === year && remarkDate.getMonth() === month) {
+                    const day = remarkDate.getDate();
+                    if (!completedDays.includes(day)) {
+                        completedDays.push(day);
+                    }
+                }
+            });
+            
+            // 计算完成率
+            const completionRate = calculateCompletionRate(totalDays, completedDays.length);
+            document.getElementById('completion-rate').textContent = `完成率：${completionRate}%`;
+            
+            // 绘制方格图
+            const chartContainer = document.getElementById('calendar-grid-chart');
+            chartContainer.className = 'calendar-grid-chart month-view';
+            
+            let html = '';
+            
+            // 添加空白格子，使第一天对齐到正确的星期几
+            const firstDayOfWeek = startDate.getDay(); // 0是周日，1是周一，...，6是周六
+            for (let i = 0; i < firstDayOfWeek; i++) {
+                html += '<div class="calendar-day"></div>';
+            }
+            
+            // 添加日期格子
+            for (let day = 1; day <= totalDays; day++) {
+                const isCompleted = completedDays.includes(day);
+                const dayElement = `
+                    <div 
+                        class="calendar-day ${isCompleted ? 'completed' : ''}" 
+                        style="${isCompleted ? `background-color: ${event.color}` : ''}"
+                        title="${day}日${isCompleted ? ' - 已完成' : ''}"
+                    >
+                        ${day}
+                    </div>
+                `;
+                html += dayElement;
+            }
+            
+            chartContainer.innerHTML = html;
+        }
+        
+        // 绘制年视图方格图
+        function drawYearlyChart(event) {
+            const now = new Date();
+            const year = now.getFullYear();
+            
+            // 更新周期信息
+            document.getElementById('chart-period-info').textContent = `${year}年`;
+            
+            // 计算每个月的完成天数
+            const monthlyCompletion = [];
+            let totalPossibleDays = 0;
+            let totalCompletedDays = 0;
+            
+            for (let month = 0; month < 12; month++) {
+                const endDate = new Date(year, month + 1, 0);
+                const totalDays = endDate.getDate();
+                totalPossibleDays += totalDays;
+                
+                const completedDays = [];
+                event.remarks.forEach(remark => {
+                    const remarkDate = new Date(remark.time);
+                    if (remarkDate.getFullYear() === year && remarkDate.getMonth() === month) {
+                        const day = remarkDate.getDate();
+                        if (!completedDays.includes(day)) {
+                            completedDays.push(day);
+                        }
+                    }
+                });
+                
+                monthlyCompletion.push(completedDays.length);
+                totalCompletedDays += completedDays.length;
+            }
+            
+            // 计算年完成率
+            const completionRate = calculateCompletionRate(totalPossibleDays, totalCompletedDays);
+            document.getElementById('completion-rate').textContent = `完成率：${completionRate}%`;
+            
+            // 绘制方格图
+            const chartContainer = document.getElementById('calendar-grid-chart');
+            chartContainer.className = 'calendar-grid-chart year-view';
+            
+            let html = '';
+            const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+            
+            for (let month = 0; month < 12; month++) {
+                const completedDays = monthlyCompletion[month];
+                const endDate = new Date(year, month + 1, 0);
+                const totalDays = endDate.getDate();
+                const monthCompletionRate = Math.round((completedDays / totalDays) * 100);
+                
+                // 计算该月应该显示的格子数（最大10个格子）
+                const gridCount = Math.min(Math.ceil((completedDays / totalDays) * 10), 10);
+                
+                // 添加月份标题
+                html += `<div class="calendar-month-title" style="grid-column: span 1; text-align: center; font-weight: bold; margin: 10px 0;">${monthNames[month]}</div>`;
+                
+                // 添加该月的完成情况描述
+                html += `<div class="calendar-month-stats" style="grid-column: span 1; text-align: center; font-size: 12px; margin-bottom: 10px;">${completedDays}/${totalDays}天</div>`;
+                
+                // 添加该月的格子
+                for (let i = 0; i < 10; i++) {
+                    const isCompleted = i < gridCount;
+                    const dayElement = `
+                        <div 
+                            class="calendar-day ${isCompleted ? 'completed' : ''}" 
+                            style="${isCompleted ? `background-color: ${event.color}` : ''}"
+                            title="${monthNames[month]} - ${completedDays}天完成"
+                        ></div>
+                    `;
+                    html += dayElement;
+                }
+            }
+            
+            chartContainer.innerHTML = html;
+        }
+        
+        // 计算完成率
+        function calculateCompletionRate(total, completed) {
+            if (total === 0) return 0;
+            return Math.round((completed / total) * 100);
+        }
+        
+        // 关闭所有事件模态框
+        function closeAllEventsModal() {
+            const modal = document.getElementById('all-events-modal');
+            modal.style.display = 'none';
+        }
+        
+        // 删除当前事件
+        function deleteCurrentEvent() {
+            if (!currentEvent) return;
+            
+            if (confirm(`确定要删除事件 "${currentEvent.name}" 吗？此操作不可恢复！`)) {
+                // 从事件列表中删除
+                const eventIndex = events.findIndex(e => e.id === currentEvent.id);
+                if (eventIndex !== -1) {
+                    events.splice(eventIndex, 1);
+                    saveEvents();
+                }
+                
+                // 关闭详情模态框
+                closeModal();
+                
+                // 更新界面
+                renderCalendarGrid();
+                renderEventSelect();
+                renderAllEventsList();
+            }
+        }
+        
+        // 渲染支持事件选择下拉框
+        function renderSupportEventSelect() {
+            const eventSelect = document.getElementById('support-event-select');
+            
+            eventSelect.innerHTML = '';
+            
+            // 过滤掉隐藏的事件
+            const visibleEvents = events.filter(e => !e.hidden);
+            
+            if (visibleEvents.length === 0) {
+                eventSelect.innerHTML = '<option value="">暂无事件，请先添加事件</option>';
+                return;
+            }
+            
+            visibleEvents.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event.id;
+                option.textContent = event.name;
+                eventSelect.appendChild(option);
+            });
+        }
+        
+        // 确认支持
+        function confirmSupport() {
+            const eventSelect = document.getElementById('support-event-select');
+            const eventId = parseInt(eventSelect.value);
+            const remarkInput = document.getElementById('support-remark-input');
+            const remark = remarkInput.value.trim();
+            
+            if (isNaN(eventId)) {
+                alert('请选择一个事件');
+                return;
+            }
+            
+            // 查找事件
+            const event = events.find(e => e.id === eventId);
+            if (!event) return;
+            
+            // 执行支持操作（相当于原来的累计次数）
+            const today = new Date();
+            const dateStr = formatDate(today);
+            
+            // 增加计数
+            event.count++;
+            
+            // 更新打卡记录
+            if (!event.checkins[dateStr]) {
+                event.checkins[dateStr] = true;
+            }
+            
+            // 添加备注
+            event.remarks.push({
+                id: Date.now(),
+                date: dateStr,
+                time: today.toISOString(),
+                content: remark
+            });
+            
+            // 保存数据
+            saveEvents();
+            
+            // 关闭弹窗
+            closeSupportModal();
+            
+            // 生成彩带效果
+            createConfetti();
+            
+            // 显示名言
+            showQuote();
+        }
+        
+        // 显示/隐藏统计页面
+        function showStatsPage() {
+            const statsPage = document.getElementById('stats-page');
+            
+            // 先显示统计页面
+            statsPage.style.display = 'block';
+            
+            // 确保页面显示后再执行渲染操作
+            setTimeout(() => {
+                // 渲染事件选择下拉框
+                renderEventSelect();
+                
+                // 渲染打卡网格
+                renderCalendarGrid();
+                
+                // 渲染周信息
+                renderWeekInfo();
+            }, 10);
+        }
+        
+        // 渲染所有事件列表
+        function renderAllEventsList() {
+            const allEventsList = document.getElementById('all-events-list');
+            
+            if (events.length === 0) {
+                allEventsList.innerHTML = '<p>暂无事件，请先添加事件</p>';
+                return;
+            }
+            
+            let html = '<div class="all-events-list">';
+            
+            events.forEach(event => {
+                const hiddenClass = event.hidden ? ' event-hidden' : '';
+                const toggleText = event.hidden ? '显示' : '隐藏';
+                const toggleFunction = event.hidden ? `showEventById(${event.id})` : `hideEventById(${event.id})`;
+                
+                html += `
+                    <div class="all-event-item${hiddenClass}" style="display: flex; align-items: center; justify-content: space-between;">
+                        <div style="flex: 1;" onclick="showEventDetail(${event.id}); closeAllEventsModal();" oncontextmenu="showAllEventsContextMenu(event, ${event.id}, ${event.hidden});">
+                            <div class="event-item-name">${event.name}</div>
+                            <div class="event-item-stats">
+                                总打卡次数：${event.count} | 
+                                状态：${event.hidden ? '已隐藏' : '显示中'}
+                            </div>
+                        </div>
+                        <div class="event-toggle-actions" style="margin-left: 10px;">
+                            <button class="btn btn-small ${event.hidden ? 'btn-success' : 'btn-danger'}" onclick="${toggleFunction}">${toggleText}</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            allEventsList.innerHTML = html;
+        }
+        
+        // 按ID隐藏事件
+        function hideEventById(eventId) {
+            const event = events.find(e => e.id === eventId);
+            if (event) {
+                event.hidden = true;
+                saveEvents();
+                renderCalendarGrid();
+                renderEventSelect();
+                renderAllEventsList();
+            }
+        }
+        
+        // 按ID显示事件
+        function showEventById(eventId) {
+            const event = events.find(e => e.id === eventId);
+            if (event) {
+                event.hidden = false;
+                saveEvents();
+                renderCalendarGrid();
+                renderEventSelect();
+                renderAllEventsList();
+            }
+        }
+        
+        // 搜索打卡记录
+        function searchCheckins() {
+            const searchInput = document.getElementById('search-input');
+            searchQuery = searchInput.value.toLowerCase().trim();
+            currentPage = 1;
+            renderCheckinList();
+        }
+        
+        // 获取过滤后的打卡记录
+        function getFilteredCheckins() {
+            if (!currentEvent) return [];
+            
+            return currentEvent.remarks.filter(remark => {
+                if (!searchQuery) return true;
+                return remark.content.toLowerCase().includes(searchQuery);
+            }).sort((a, b) => b.id - a.id); // 按时间倒序
+        }
+        
+        // 渲染打卡记录列表
+        function renderCheckinList() {
+            const checkinList = document.getElementById('checkin-list');
+            const checkins = getFilteredCheckins();
+            
+            // 分页处理
+            const totalPages = Math.ceil(checkins.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const paginatedCheckins = checkins.slice(startIndex, endIndex);
+            
+            if (checkins.length === 0) {
+                checkinList.innerHTML = '<p>暂无打卡记录</p>';
+                renderPagination(totalPages);
+                return;
+            }
+            
+            let html = '';
+            paginatedCheckins.forEach((remark, index) => {
+                const date = new Date(remark.time);
+                const dateStr = date.toLocaleDateString('zh-CN');
+                const remarkIndex = startIndex + index;
+                
+                html += `
+                    <div class="checkin-item">
+                        <div class="checkin-date">${dateStr}</div>
+                        <div class="checkin-remark" id="remark-${remarkIndex}">${remark.content || '无备注'}</div>
+                        <div class="checkin-time">${remark.time}</div>
+                        <div class="checkin-actions">
+                            <button class="btn btn-small btn-edit" onclick="editRemark(${remarkIndex})">修改</button>
+                            <button class="btn btn-small btn-delete" onclick="deleteRemark(${remarkIndex})">删除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            checkinList.innerHTML = html;
+            renderPagination(totalPages);
+        }
+        
+        // 编辑备注
+        function editRemark(index) {
+            const checkins = getFilteredCheckins();
+            const remark = checkins[index];
+            if (!remark) return;
+            
+            const remarkElement = document.getElementById(`remark-${index}`);
+            const currentContent = remark.content || '';
+            
+            // 替换为编辑输入框
+            remarkElement.innerHTML = `
+                <textarea class="edit-remark-input" id="edit-input-${index}">${currentContent}</textarea>
+                <div class="checkin-actions">
+                    <button class="btn btn-small btn-edit" onclick="saveRemark(${index})">保存</button>
+                    <button class="btn btn-small btn-delete" onclick="cancelEdit(${index})">取消</button>
+                </div>
+            `;
+        }
+        
+        // 保存修改后的备注
+        function saveRemark(index) {
+            const checkins = getFilteredCheckins();
+            const originalIndex = currentEvent.remarks.findIndex(r => r.id === checkins[index].id);
+            if (originalIndex === -1) return;
+            
+            const editInput = document.getElementById(`edit-input-${index}`);
+            const newContent = editInput.value.trim();
+            
+            // 更新备注内容
+            currentEvent.remarks[originalIndex].content = newContent;
+            saveEvents();
+            renderCheckinList();
+        }
+        
+        // 取消编辑
+        function cancelEdit(index) {
+            renderCheckinList();
+        }
+        
+        // 删除备注
+        function deleteRemark(index) {
+            const checkins = getFilteredCheckins();
+            const originalIndex = currentEvent.remarks.findIndex(r => r.id === checkins[index].id);
+            if (originalIndex === -1) return;
+            
+            if (confirm('确定要删除这条备注吗？')) {
+                // 删除备注
+                currentEvent.remarks.splice(originalIndex, 1);
+                
+                // 更新计数
+                currentEvent.count--;
+                
+                // 检查是否需要删除打卡记录
+                const remark = checkins[index];
+                const date = new Date(remark.time);
+                const dateStr = formatDate(date);
+                
+                // 检查该日期是否还有其他备注
+                const hasOtherRemarks = currentEvent.remarks.some(r => {
+                    const rDate = new Date(r.time);
+                    return formatDate(rDate) === dateStr;
+                });
+                
+                if (!hasOtherRemarks) {
+                    delete currentEvent.checkins[dateStr];
+                }
+                
+                saveEvents();
+                renderCheckinList();
+                renderCalendarGrid();
+            }
+        }
+        
+        // 渲染分页控件
+        function renderPagination(totalPages) {
+            const pagination = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+            
+            let html = `
+                <button onclick="changePage(1)" ${currentPage === 1 ? 'disabled' : ''}>首页</button>
+                <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>
+                <span class="page-info">第 ${currentPage} / ${totalPages} 页</span>
+                <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>
+                <button onclick="changePage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>末页</button>
+            `;
+            
+            pagination.innerHTML = html;
+        }
+        
+        // 切换页码
+        function changePage(page) {
+            currentPage = page;
+            renderCheckinList();
+        }
+        
+        // 添加事件
+        function addEvent() {
+            const eventNameInput = document.getElementById('event-name-input');
+            const eventName = eventNameInput.value.trim();
+            
+            if (eventName) {
+                const newEvent = {
+                    id: Date.now(),
+                    name: eventName,
+                    count: 0,
+                    checkins: {},
+                    remarks: [],
+                    hidden: false,
+                    // 为新事件分配独特的颜色
+                    color: allColors[events.length % allColors.length]
+                };
+                
+                events.push(newEvent);
+                saveEvents();
+                renderCalendarGrid();
+                renderEventSelect();
+                eventNameInput.value = '';
+            }
+        }
+        
+        // 累计次数
+        function incrementCounter() {
+            const eventSelect = document.getElementById('event-select');
+            const remarkInput = document.getElementById('remark-input');
+            const selectedEventId = parseInt(eventSelect.value);
+            const remark = remarkInput.value.trim();
+            
+            const event = events.find(e => e.id === selectedEventId);
+            if (event) {
+                const today = new Date();
+                const dateStr = formatDate(today);
+                
+                event.count++;
+                event.remarks.push({
+                    id: Date.now(),
+                    time: today.toLocaleString(),
+                    content: remark
+                });
+                
+                // 添加打卡记录
+                event.checkins[dateStr] = true;
+                
+                saveEvents();
+                renderCalendarGrid();
+                remarkInput.value = '';
+                
+                // 生成彩带效果
+                createConfetti();
+                
+                // 显示随机名言
+                showQuote();
+            }
+        }
+        
+        // 保存事件数据到localStorage
+        function saveEvents() {
+            localStorage.setItem('counterEvents', JSON.stringify(events));
+        }
+        
+        // 初始化页面
+        function init() {
+            renderWeekInfo();
+            renderCalendarGrid();
+            renderEventSelect();
+        }
+        
+        // 刷新页面函数（含随机动画）
+        function refreshPage() {
+            // 刷新统计页面内容
+            renderWeekInfo();
+            renderCalendarGrid();
+            
+            // 显示彩带效果
+            createConfetti();
+            
+            // 显示随机名言
+            showQuote();
+            
+            // 按钮颜色变化动画
+            changeSupportButtonColor();
+        }
+        
+        // 页面加载完成后初始化
+        window.onload = init;
+    </script>
+</body>
+</html>
